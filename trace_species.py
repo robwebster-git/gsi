@@ -33,14 +33,14 @@ def find_trace_by_pc_adj(files, fnf_exists, fnf_array, threshold, shapes):
     process_info = []
 
     profile = rio.open(files[0]).profile.copy()
-    p(f"Profile before: {profile}")
+    #p(f"Profile before: {profile}")
 
 
     # Loop through each adjusted species raster
     for file in files:
         
         name = file.split('_pc_adj')[0][2:]
-        print(f'Processing {name}')
+        #print(f'Processing {name}')
 
         with rio.open(file) as f:
 
@@ -52,9 +52,13 @@ def find_trace_by_pc_adj(files, fnf_exists, fnf_array, threshold, shapes):
                 profile['height'] = cropped_image.shape[1]
                 profile['width'] = cropped_image.shape[2]
                 profile['transform'] = cropped_transform
+                
+
+                #  Debugging - uncomment these lines perhaps?
                 #rasterio.plot.show(cropped_image, transform=cropped_transform)
-                p(f"Profile after crop : {profile}")
-                p(f"Cropped image shape : {cropped_image.shape}")
+                #p(f"Profile after crop : {profile}")
+                #p(f"Cropped image shape : {cropped_image.shape}")
+                
                 # If a FNF mask is supplied, apply this mask (which has already been cropped to the shapefile extent) to the cropped 
                 # species file
 
@@ -122,8 +126,8 @@ def find_trace_by_dominance(domfile, fnf_exists, fnf_array, dom_threshold, shape
         total_pixels = dom.shape[0] * dom.shape[1]
 
         #  Display some metadata to help ensure things are working correctly 
-        print(f'Shape of original dominant species raster: {dom.shape}')
-        print(f'Total pixels : {total_pixels}')
+        print(f'Shape of original dominant species raster: {dom.shape}\n')
+        print(f'Total pixels : {total_pixels}\n')
 
         #  Append the same information to the "process_info" list which is effectively a log file
         process_info.append(f'Shape of original dominant species raster: {dom.shape}')
@@ -137,7 +141,7 @@ def find_trace_by_dominance(domfile, fnf_exists, fnf_array, dom_threshold, shape
         #  Also, update the values of "total_pixels" and "total_masked_pixels" in light of cropping the data.
 
             data, cropped_dom_transform = rasterio.mask.mask(dom, shapes, crop=True)
-            print(f"Cropped dominant species raster shape : {data.shape}")
+            print(f"Cropped dominant species raster shape : {data.shape}\n")
             process_info.append(f"Cropped dominant species raster shape : {data.shape}")
             total_pixels = data.shape[1] * data.shape[2] 
             data = np.ma.masked_array(data, mask=fnf_array)
@@ -149,7 +153,7 @@ def find_trace_by_dominance(domfile, fnf_exists, fnf_array, dom_threshold, shape
         #  then update the "total_pixels" and "total_masked_pixels"
 
             data, cropped_dom_transform = rasterio.mask.mask(dom, shapes, crop=True)
-            print(f"Cropped dominant species raster shape : {data.shape}")
+            print(f"Cropped dominant species raster shape : {data.shape}\n")
             process_info.append(f"Cropped dominant species raster shape : {data.shape}")
             total_pixels = data.shape[1] * data.shape[2]
             total_masked_pixels = ma.count_masked(data)
@@ -247,9 +251,10 @@ def write_trace_species_raster(data, profile, outname):
     layers_sum = all_layers.sum(axis=0)
 
     #  Print some useful info
-    print(f"\nLayers sum shape : {layers_sum.shape}\n")
-    print(f"Data[0] shape {data[0].shape}\n")
-    print(f"Profile : {profile}\n")
+    #print(f"\nLayers sum shape : {layers_sum.shape}\n")
+    #print(f"Data[0] shape {data[0].shape}\n")
+    #print(f"Profile : {profile}\n")
+    print(f'\nWriting output raster with summed trace species contributions: {outname}\n')
 
     #  Write the data
     with rio.open(outname, 'w', **profile) as dest:
@@ -320,16 +325,16 @@ def main(pc_adj_filepath, dominant_species_raster, outpath, aoi, pc_threshold, d
         print(pc_files)
         
         #  Print threshold
-        print(f'Using threshold {pc_threshold}%')
+        print(f'\nUsing threshold {pc_threshold}%\n')
         
         #  Call the function
         trace_species, trace_data, profile, process_info = find_trace_by_pc_adj(pc_files, fnf_exists, fnf_array, pc_threshold, shapes)
         
         #  Set up filenames for log outputs
         if fnf:
-            filename = 'trace_results_by_pc_adj_fnf.txt'
+            filename = f'trace_results_by_pc_adj_fnf_{aoi}.txt'
         else:
-            filename = 'trace_results_by_pc_adj.txt'   
+            filename = f'trace_results_by_pc_adj_{aoi}.txt'   
 
         #  Write the resulting text files    
         write_results_txt(trace_species, process_info, filename)
@@ -354,9 +359,9 @@ def main(pc_adj_filepath, dominant_species_raster, outpath, aoi, pc_threshold, d
         
         #  Set up filenames for log outputs
         if fnf:
-            filename = 'trace_results_by_dominance_fnf.txt'
+            filename = f'trace_results_by_dominance_fnf_{aoi}.txt'
         else:
-            filename = 'trace_results_by_dominance.txt' 
+            filename = f'trace_results_by_dominance_{aoi}.txt' 
 
         #  Write the resulting text files
         write_results_txt(trace_species, process_info, filename)
