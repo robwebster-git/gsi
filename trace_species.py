@@ -33,6 +33,8 @@ def find_trace_by_pc_adj(files, fnf_exists, fnf_array, threshold, shapes):
     process_info = []
 
     profile = rio.open(files[0]).profile.copy()
+    p(f"Profile before: {profile}")
+
 
     # Loop through each adjusted species raster
     for file in files:
@@ -45,20 +47,22 @@ def find_trace_by_pc_adj(files, fnf_exists, fnf_array, threshold, shapes):
             #  If there's a shapefile supplied, crop each image to the shapefile and update metadata
 
             if shapes:
-                cropped_image, cropped_transform = rasterio.mask.mask(f, shapes, crop=True)
+                cropped_image, cropped_transform = rasterio.mask.mask(f, shapes, crop=True, nodata=-9999)
                 cropped_meta = f.meta
-                profile['height'] = cropped_image.shape[0]
-                profile['width'] = cropped_image.shape[1]
+                profile['height'] = cropped_image.shape[1]
+                profile['width'] = cropped_image.shape[2]
+                profile['transform'] = cropped_transform
                 #rasterio.plot.show(cropped_image, transform=cropped_transform)
-                
+                p(f"Profile after crop : {profile}")
+                p(f"Cropped image shape : {cropped_image.shape}")
                 # If a FNF mask is supplied, apply this mask (which has already been cropped to the shapefile extent) to the cropped 
                 # species file
 
                 if fnf_exists:
-                    data = np.ma.masked_array(cropped_image, mask=fnf_array, fill=-9999)
-                    np.ma.set_fill_value(data, -9999)
-                    p(data)
-                    p(cropped_meta)
+                    data = np.ma.masked_array(cropped_image, mask=fnf_array)
+                    #np.ma.set_fill_value(data, -9999)
+                    #p(data)
+                    
                     #rasterio.plot.show(data, transform=cropped_transform
 
             #  If there is no shapefile supplied, but there is a FNF mask supplied, apply the mask to each species raster
@@ -151,11 +155,12 @@ def write_trace_species_raster(data, profile, outname):
     all_layers = np.stack(data)
     
     layers_sum = all_layers.sum(axis=0)
-    print(layers_sum.shape)
-    print(data[0].shape)
+    print(f"\nLayers sum shape : {layers_sum.shape}\n")
+    print(f"Data[0] shape {data[0].shape}\n")
+    print(f"Profile : {profile}\n")
 
     with rio.open(outname, 'w', **profile) as dest:
-        dest.write(layers_sum.filled(-9999), 1)
+        dest.write(layers_sum.filled(-9999))
 
     return
 
