@@ -36,8 +36,14 @@ def find_trace_by_pc_adj(files, fnf_exists, fnf_array, threshold, shapes):
 
     # Loop through each adjusted species raster
     for file in files:
+        
+        name = file.split('_pc_adj')[0][2:]
+        print(f'Processing {name}')
+
         with rio.open(file) as f:
+
             #  If there's a shapefile supplied, crop each image to the shapefile and update metadata
+
             if shapes:
                 cropped_image, cropped_transform = rasterio.mask.mask(f, shapes, crop=True)
                 cropped_meta = f.meta
@@ -45,19 +51,13 @@ def find_trace_by_pc_adj(files, fnf_exists, fnf_array, threshold, shapes):
                 
                 # If a FNF mask is supplied, apply this mask (which has already been cropped to the shapefile extent) to the cropped 
                 # species file
+
                 if fnf_exists:
                     data = np.ma.masked_array(cropped_image, mask=fnf_array, fill=-9999)
                     np.ma.set_fill_value(data, -9999)
                     p(data)
                     p(cropped_meta)
-                    #rasterio.plot.show(data, transform=cropped_transform)
-        
-            ####   SHAPEFILE CROPPING NOT FULLY DEBUGGED YET!!!
-            
-            # get a string of the species name, for readability of outputs and for showing progress 
-            name = file.split('_pc_adj')[0][2:]
-
-            print(f'Processing {name}')
+                    #rasterio.plot.show(data, transform=cropped_transform
 
             #  If there is no shapefile supplied, but there is a FNF mask supplied, apply the mask to each species raster
             elif fnf_exists: 
@@ -84,7 +84,7 @@ def find_trace_by_pc_adj(files, fnf_exists, fnf_array, threshold, shapes):
             else:
                 trace = False
 
-            #print(f'Species {name} : Mean: {m} - Trace : {trace}')
+            print(f'Species {name} : Mean: {m} - Trace : {trace}')
             
             #  Update the log / process_info list with a line for each species
             process_info.append(f'Species {name} : Mean: {m} - Trace : {trace}')
