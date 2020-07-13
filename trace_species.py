@@ -39,7 +39,7 @@ def find_trace_by_pc_adj(files, fnf_exists, fnf_array, threshold, shapes):
     # Loop through each adjusted species raster
     for file in files:
         
-        name = file.split('_pc_adj')[0][2:]
+        name = file.split('_pc_adj')[0]
         #print(f'Processing {name}')
 
         with rio.open(file) as f:
