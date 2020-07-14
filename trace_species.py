@@ -249,9 +249,9 @@ def write_trace_species_raster(data, profile, outname):
 @click.option('--dom','dominant_species_raster', type=click.Path(exists=True), help="Specifies that you want to calculate using a dominant species raster.  Provide such a raster file here")
 @click.option('--out', 'outpath', default='.', type=click.Path(exists=True), help="Specify a directory path for the output files.  The default is the current directory")
 @click.option('--aoi', default='LV_KC', help='The string code for the area of interest.  Default is LV_KC')
-@click.option('--threshold', default=1, help="Threshold for calculating trace species.  Default is 1%")
-@click.option('--fnf', default=None, help='Add a forest/non-forest mask - specify the filepath')
-@click.option('--shapefile', default=None, help='Calculate trace species within this area - provide path to shapefile')
+@click.option('--threshold', default=1.0, help="Threshold for calculating trace species.  Default is 1%")
+@click.option('--fnf', default=None, type=click.Path(exists=True), help='Add a forest/non-forest mask - specify the filepath')
+@click.option('--shapefile', default=None, type=click.Path(exists=True), help='Calculate trace species within this area - provide path to shapefile')
 @click.option('--write_trace_raster', help='Write output trace species raster - provide output filename')
 def main(pc_adj_filepath, dominant_species_raster, outpath, aoi, threshold, fnf, shapefile, write_trace_raster):
     
@@ -266,42 +266,50 @@ def main(pc_adj_filepath, dominant_species_raster, outpath, aoi, threshold, fnf,
     if fnf and shapefile:
         #  If both FNF mask and shapefile are provided, start by extracting the shapes from the shapefile
         #  and cropping the FNF mask to keep only those areas within the shapefile polygons
+        try:
+            with fiona.open(shapefile, "r") as shp:
+                shapes = [feature["geometry"] for feature in shp]
+                with rio.open(fnf) as src:
+                    fnf_array, cropped_fnf_transform = rasterio.mask.mask(src, shapes, crop=True, nodata=-9999, filled=True)
+                    fnf_exists = True
+        except:
+            sys.exit('\nError cropping FNF with shapefile.  Check FNF is valid raster, and shapefile is geojson or ESRI shapefile\nand is in same CRS and within the AOI\n')
 
-        with fiona.open(shapefile, "r") as shp:
-            shapes = [feature["geometry"] for feature in shp]
-            with rio.open(fnf) as src:
-                fnf_array, cropped_fnf_transform = rasterio.mask.mask(src, shapes, crop=True, nodata=-9999, filled=True)
-                fnf_exists = True
-        
     elif fnf:
 
         #  If FNF is provided (and no shapefile), read the FNF mask file and store the data in fnf_array
         
-        process_info.append("\n FNF mask supplied...")
-        
-        with rio.open(fnf) as src:
-            fnf_array = src.read()
-            fnf_exists = True
+        try:
+            with rio.open(fnf) as src:
+                fnf_array = src.read()
+                fnf_exists = True
+        except:
+            sys.exit('\nError opening FNF mask with rasterio\n')
+
 
     elif shapefile:
 
         #  If only a shapefile is supplied, extract the shapefile features, and store in a list called "shapes"
-        
-        process_info.append("\n Shapefile supplied...")
 
-        with fiona.open(shapefile, "r") as shp:
-            shapes = [feature["geometry"] for feature in shp]
-
+        try:
+            with fiona.open(shapefile, "r") as shp:
+                shapes = [feature["geometry"] for feature in shp]
+        except:
+            sys.exit('\nError reading features from shapefile.  Use a valid geojson or ESRI shapefile\n')
     else:
-        process_info.append("\n No FNF mask or shapefile supplied...\n")
+        print("\n No FNF mask or shapefile supplied...\n")
 
 
     if pc_adj_filepath:
         #  If the adjusted percentage method is used (ie a path a pc_adj.{AOI}.tif is provided), then collect up the 
         #  necessary filenames into a list using glob, run the function "find_trace_by_pc_adj"
         #  then write the outputs
+        
         pc_files = glob(os.path.join(pc_adj_filepath, f'*_pc_adj.{aoi}.tif'))
         
+        if len(pc_files) == 0:
+            sys.exit('\nNo valid percentage adjusted rasters found in the specified directory \n\nPlease check and try again\n')
+
         # Print list of files found at the specified path:
         print(pc_files)
         
@@ -309,8 +317,11 @@ def main(pc_adj_filepath, dominant_species_raster, outpath, aoi, threshold, fnf,
         print(f'\nUsing threshold {threshold}%\n')
         
         #  Call the function
-        trace_species, trace_data, profile, process_info = find_trace_by_pc_adj(pc_files, fnf_exists, fnf_array, threshold, shapes)
-        
+        try:
+            trace_species, trace_data, profile, process_info = find_trace_by_pc_adj(pc_files, fnf_exists, fnf_array, threshold, shapes)
+        except:
+            sys.exit('\nSomething went wrong running the function "find_trace_species_by_pc_adj".  Check input data\n')
+
         #  Set up filenames for log outputs
         if fnf:
             filename = f'trace_results_by_pc_adj_fnf_{aoi}.txt'
@@ -322,8 +333,10 @@ def main(pc_adj_filepath, dominant_species_raster, outpath, aoi, threshold, fnf,
 
         #  Write a trace species raster, if the flag "--write_trace_raster" is set
         if write_trace_raster:
-            write_trace_species_raster(trace_data, profile, write_trace_raster)
-
+            try:
+                write_trace_species_raster(trace_data, profile, write_trace_raster)
+            except:
+                sys.exit('\nSomething went wrong whilst trying to write the output raster.  Check input data and try again\n')
 
 
     #  The other method of calculating trace species, based on a dominant species raster.
@@ -332,12 +345,15 @@ def main(pc_adj_filepath, dominant_species_raster, outpath, aoi, threshold, fnf,
         dom_file = os.path.join(dominant_species_raster)
         
         #  Print out threshold and filename to confirm to user correct settings being used
-        print(f'Dominant species raster : {dom_file}')
-        print(f'Using threshold {threshold}%')
+        print(f'\n Dominant species raster : {dom_file} \n')
+        print(f'\n Using threshold {threshold}% \n')
 
         #  Call the function
-        trace_species, process_info = find_trace_by_dominance(dom_file, fnf_exists, fnf_array, threshold, shapes)
-        
+        try:
+            trace_species, process_info = find_trace_by_dominance(dom_file, fnf_exists, fnf_array, threshold, shapes)
+        except:
+            sys.exit('\nSomething went wrong running the function "find_trace_by_dominance".  Check input data\n')
+
         #  Set up filenames for log outputs
         if fnf:
             filename = f'trace_results_by_dominance_fnf_{aoi}.txt'
@@ -345,8 +361,10 @@ def main(pc_adj_filepath, dominant_species_raster, outpath, aoi, threshold, fnf,
             filename = f'trace_results_by_dominance_{aoi}.txt' 
 
         #  Write the resulting text files
-        write_results_txt(trace_species, process_info, filename)
-
+        try:
+            write_results_txt(trace_species, process_info, filename)
+        except:
+            sys.exit('\nSomething went wrong running the function "write_results_txt".  Check command and try again\n')
 
 if __name__ == "__main__":
     main()
