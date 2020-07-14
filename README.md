@@ -6,7 +6,7 @@ The tool currently has two modes with different input data.
 
 ## Method 1 - Using percentage adjusted species rasters as inputs
 
-*inputs* : pc_adj (percentage adjusted) species rasters.  Trace species are identified as those which contribute an overall percentage in the valid (ie not masked) pixels in the AOI of less than a threshold percentage (default 1%).
+*inputs* : `pc_adj` (percentage adjusted) species rasters.  Trace species are identified as those which contribute an overall percentage in the valid (ie not masked) pixels in the AOI of less than a threshold percentage (default 1%).
 
 *masks* : FNF raster and/or shapefile with property boundaries or similar
 
