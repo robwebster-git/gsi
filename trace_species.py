@@ -17,7 +17,7 @@ from pprint import pprint as p
 def find_trace_by_pc_adj(files, fnf_exists, fnf_array, threshold, shapes):
     """
     Takes in a list of species rasters (percentage adjusted), an optional FNF (forest/non-forest mask) and and optional
-    shapefile if you only want to analyse the area within certain areas.  The threshold is the percentage contirubution of a particular
+    shapefile if you only want to analyse the area within certain polygons.  The threshold is the percentage contirubution of a particular
     species, below which the species is said to be "trace".
     
     Returns:
@@ -47,7 +47,7 @@ def find_trace_by_pc_adj(files, fnf_exists, fnf_array, threshold, shapes):
             #  If there's a shapefile supplied, crop each image to the shapefile and update metadata
 
             if shapes:
-                cropped_image, cropped_transform = rasterio.mask.mask(f, shapes, crop=True, nodata=-9999)
+                cropped_image, cropped_transform = rasterio.mask.mask(f, shapes, crop=True, nodata=-9999, filled=True)
                 cropped_meta = f.meta
                 profile['height'] = cropped_image.shape[1]
                 profile['width'] = cropped_image.shape[2]
@@ -107,15 +107,15 @@ def find_trace_by_dominance(domfile, fnf_exists, fnf_array, dom_threshold, shape
     Takes in a dominant species raster, an optional FNF (forest/non-forest mask) and optional
     shapefile if you only want to analyse the pixels within certain areas.  The percentage of
     valid (ie not masked) pixels in which each species is dominant is calculated.  the threshold is then
-    applied, and species contributing at a alevel below the threshold are set as "trace" species.
+    applied, and species contributing at a level below the threshold are set as "trace" species.
     
     Returns:
     
-    trace_species : list - list of trace species
+    trace_species : list - list of trace species FIA codes
     process_info : list - textual info about the process
 
-
     """
+
     trace_species = []
     process_info = []
 
@@ -140,7 +140,7 @@ def find_trace_by_dominance(domfile, fnf_exists, fnf_array, dom_threshold, shape
         #  shapefile.  Then apply the FNF mask (which has already been cropped before the function was called).
         #  Also, update the values of "total_pixels" and "total_masked_pixels" in light of cropping the data.
 
-            data, cropped_dom_transform = rasterio.mask.mask(dom, shapes, crop=True)
+            data, cropped_dom_transform = rasterio.mask.mask(dom, shapes, crop=True, nodata=-9999, filled=True)
             print(f"Cropped dominant species raster shape : {data.shape}\n")
             process_info.append(f"Cropped dominant species raster shape : {data.shape}")
             total_pixels = data.shape[1] * data.shape[2] 
@@ -152,7 +152,7 @@ def find_trace_by_dominance(domfile, fnf_exists, fnf_array, dom_threshold, shape
         #  If only a shapefile is provided, crop the dominant species raster using the features in "shapes",
         #  then update the "total_pixels" and "total_masked_pixels"
 
-            data, cropped_dom_transform = rasterio.mask.mask(dom, shapes, crop=True)
+            data, cropped_dom_transform = rasterio.mask.mask(dom, shapes, crop=True, nodata=-9999, filled=True)
             print(f"Cropped dominant species raster shape : {data.shape}\n")
             process_info.append(f"Cropped dominant species raster shape : {data.shape}")
             total_pixels = data.shape[1] * data.shape[2]
@@ -193,7 +193,7 @@ def find_trace_by_dominance(domfile, fnf_exists, fnf_array, dom_threshold, shape
     #  Each data pixel value is a species code, representing the species which is dominant in that pixel.  By counting
     #  all the pixels in which a particular species is dominant, a percentage can be found which tells the user what proportion of
     #  pixels a given species is dominant in.  This number can be compared to the threshold value to identify trace species.
-    #  For example, if a species is dominanty in fewer than 1% of valid pixels, it may be deemed "trace".
+    #  For example, if a species is dominant in fewer than 1% of valid pixels, it may be deemed "trace".
     
     unique, counts = np.unique(data, return_counts=True)  # calculate the number of times each unique pixel value occurs
     info = zip(unique, counts)  # zip unique raster value and their associated counts into an easily iterable object
@@ -245,7 +245,7 @@ def write_trace_species_raster(data, profile, outname):
     """
 
     #  Stack the input data 
-    all_layers = np.stack(data)
+    all_layers = np.ma.stack(data)
     
     #  Add up all the pixels lying "on top of" each other in the stack
     layers_sum = all_layers.sum(axis=0)
@@ -289,7 +289,7 @@ def main(pc_adj_filepath, dominant_species_raster, outpath, aoi, pc_threshold, d
         with fiona.open(shapefile, "r") as shp:
             shapes = [feature["geometry"] for feature in shp]
             with rio.open(fnf) as src:
-                fnf_array, cropped_fnf_transform = rasterio.mask.mask(src, shapes, crop=True)
+                fnf_array, cropped_fnf_transform = rasterio.mask.mask(src, shapes, crop=True, nodata=-9999, filled=True)
                 fnf_exists = True
         
     elif fnf:
