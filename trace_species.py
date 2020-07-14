@@ -254,11 +254,11 @@ def write_trace_species_raster(data, profile, outname):
     return
 
 @click.command()
-@click.option('--pc_adj', 'pc_adj_filepath', type=click.Path(exists=True))
-@click.option('--dom','dominant_species_raster', type=click.Path(exists=True))
-@click.option('--out', 'outpath', default='.', type=click.Path(exists=True))
-@click.option('--aoi', default='LV_KC', help='The code for the area of interest')
-@click.option('--threshold', default=1)
+@click.option('--pc_adj', 'pc_adj_filepath', type=click.Path(exists=True), help="Path to directory containing percentage adjusted species rasters.  Use EITHER this method OR the --dom method below.")
+@click.option('--dom','dominant_species_raster', type=click.Path(exists=True), help="Specifies that you want to calculate using a dominant species raster.  Provide such a raster file here")
+@click.option('--out', 'outpath', default='.', type=click.Path(exists=True), help="Specify a directory path for the output files.  The default is the current directory")
+@click.option('--aoi', default='LV_KC', help='The string code for the area of interest.  Default is LV_KC')
+@click.option('--threshold', default=1, help="Threshold for calculating trace species.  Default is 1%")
 @click.option('--fnf', default=None, help='Add a forest/non-forest mask - specify the filepath')
 @click.option('--shapefile', default=None, help='Calculate trace species within this area - provide path to shapefile')
 @click.option('--write_trace_raster', help='Write output trace species raster - provide output filename')
