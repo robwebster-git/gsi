@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
 import rasterio as rio
 import rasterio.mask
 import rasterio.plot
@@ -11,13 +8,22 @@ import os
 import click
 import sys
 import fiona
-from pprint import pprint as p
+
+"""
+
+Trace Species ID, version 1.1
+
+Rob Webster - July 2020
+
+Ticket Number - GSI 654
+
+"""
 
 
 def find_trace_by_pc_adj(files, fnf_exists, fnf_array, threshold, shapes):
     """
-    Takes in a list of species rasters (percentage adjusted), an optional FNF (forest/non-forest mask) and and optional
-    shapefile if you only want to analyse the area within certain polygons.  The threshold is the percentage contirubution of a particular
+    Takes in a list of species rasters (percentage adjusted), an optional FNF (forest/non-forest mask) and an optional
+    shapefile if you only want to analyse the area within certain polygons.  The threshold is the percentage contribution of a particular
     species, below which the species is said to be "trace".
     
     Returns:
@@ -33,14 +39,11 @@ def find_trace_by_pc_adj(files, fnf_exists, fnf_array, threshold, shapes):
     process_info = []
 
     profile = rio.open(files[0]).profile.copy()
-    #p(f"Profile before: {profile}")
-
 
     # Loop through each adjusted species raster
     for file in files:
         
         name = file.split('_pc_adj')[0]
-        #print(f'Processing {name}')
 
         with rio.open(file) as f:
 
@@ -53,21 +56,11 @@ def find_trace_by_pc_adj(files, fnf_exists, fnf_array, threshold, shapes):
                 profile['width'] = cropped_image.shape[2]
                 profile['transform'] = cropped_transform
                 
-
-                #  Debugging - uncomment these lines perhaps?
-                #rasterio.plot.show(cropped_image, transform=cropped_transform)
-                #p(f"Profile after crop : {profile}")
-                #p(f"Cropped image shape : {cropped_image.shape}")
-                
                 # If a FNF mask is supplied, apply this mask (which has already been cropped to the shapefile extent) to the cropped 
                 # species file
 
                 if fnf_exists:
                     data = np.ma.masked_array(cropped_image, mask=fnf_array)
-                    #np.ma.set_fill_value(data, -9999)
-                    #p(data)
-                    
-                    #rasterio.plot.show(data, transform=cropped_transform
 
             #  If there is no shapefile supplied, but there is a FNF mask supplied, apply the mask to each species raster
             elif fnf_exists: 
@@ -111,7 +104,7 @@ def find_trace_by_dominance(domfile, fnf_exists, fnf_array, dom_threshold, shape
     
     Returns:
     
-    trace_species : list - list of trace species FIA codes
+    trace_species : list - info on trace species including FIA codes
     process_info : list - textual info about the process
 
     """
@@ -176,6 +169,7 @@ def find_trace_by_dominance(domfile, fnf_exists, fnf_array, dom_threshold, shape
             total_masked_pixels = ma.count_masked(data)
         
         #  Calculate valid / data pixels as the difference between all pixels and all masked pixels
+
         data_pixels = total_pixels - total_masked_pixels
 
         #  Inform user of pixel info
@@ -184,6 +178,7 @@ def find_trace_by_dominance(domfile, fnf_exists, fnf_array, dom_threshold, shape
         print(f'Number of data pixels: {data_pixels}')
 
         #  Update log file
+
         process_info.append('\nAfter mask and shapefile processing:\n')
         process_info.append(f'Number of masked pixels: {total_masked_pixels}')
         process_info.append(f'Number of data pixels: {data_pixels}')
@@ -250,10 +245,6 @@ def write_trace_species_raster(data, profile, outname):
     #  Add up all the pixels lying "on top of" each other in the stack
     layers_sum = all_layers.sum(axis=0)
 
-    #  Print some useful info
-    #print(f"\nLayers sum shape : {layers_sum.shape}\n")
-    #print(f"Data[0] shape {data[0].shape}\n")
-    #print(f"Profile : {profile}\n")
     print(f'\nWriting output raster with summed trace species contributions: {outname}\n')
 
     #  Write the data
