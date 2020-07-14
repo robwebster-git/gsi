@@ -12,7 +12,7 @@ The tool currently has two modes with different input data.
 
 *outputs* : a text file which includes the filenames of those input files pertaining to trace species.  Second output, if flag set, is a new raster with pixel values equal to the summed contributions of each species identified overall as trace in the AOI.
 
-## Method 2 - Using a dominant species raster as input
+## Method 2 - Using a dominant species raster as input
 
 *inputs* : a dominant species raster.  Trace species are identified as those which are dominant in less than a threshold percentage (default 1%) of valid (ie not masked) pixels.
 
