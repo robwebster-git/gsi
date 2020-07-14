@@ -1,25 +1,24 @@
 # Trace Species Identifier
 
-A python tool written to address GSI 654
+A python tool written to address _*GSI 654*_
 
-The tool currently has two modes with different input data:
+The tool currently has two modes with different input data.
 
 ## Method 1 - Using percentage adjusted species rasters as inputs
 
-inputs : pc_adj (percentage adjusted) species rasters.  Trace species are identified as those which contribute an overall percentage in the valid (ie not masked) pixels in the AOI of less than a threshold percentage (default 1%). 
+*inputs* : pc_adj (percentage adjusted) species rasters.  Trace species are identified as those which contribute an overall percentage in the valid (ie not masked) pixels in the AOI of less than a threshold percentage (default 1%).
 
-masks : FNF raster and/or shapefile with property boundaries or similar
+*masks* : FNF raster and/or shapefile with property boundaries or similar
 
-outputs : a text file which includes the filenames of those input files pertaining to trace species, though nothing further is done with these files yet (move them to a subfolder called “trace_threshold_1pc” or similar? 
-second output, if flag set : a new raster with pixel values equal to the summed contributions of each species identified overall as trace in the AOI.  
+*outputs* : a text file which includes the filenames of those input files pertaining to trace species.  Second output, if flag set, is a new raster with pixel values equal to the summed contributions of each species identified overall as trace in the AOI.
 
 ## Method 2 - Using a dominant species raster as input
 
-_inputs_ : a dominant species raster.  Trace species are identified as those which are dominant in less than a threshold percentage (default 1%) of valid (ie not masked) pixels.
+*inputs* : a dominant species raster.  Trace species are identified as those which are dominant in less than a threshold percentage (default 1%) of valid (ie not masked) pixels.
 
-masks : FNF raster and/or shapefile with property boundaries or similar
+*masks* : FNF raster and/or shapefile with property boundaries or similar
 
-output : currently just a textfile with details on the species and their contributions, along with which are identified as trace species.  These species are in the form of FIA codes, so depending on what needs to be done with this information, they may well have to be converted to USFS common name “codes” or similar.
+*output* : currently just a textfile with details on the species and their contributions, along with which are identified as trace species.  These species are in the form of FIA codes, so depending on what needs to be done with this information, they may well have to be converted to USFS common name “codes” or similar.
 
 ## Examples of Usage
 
