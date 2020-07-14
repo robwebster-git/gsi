@@ -249,7 +249,7 @@ def write_trace_species_raster(data, profile, outname):
 @click.option('--dom','dominant_species_raster', type=click.Path(exists=True), help="Specifies that you want to calculate using a dominant species raster.  Provide such a raster file here")
 @click.option('--out', 'outpath', default='.', type=click.Path(exists=True), help="Specify a directory path for the output files.  The default is the current directory")
 @click.option('--aoi', default='LV_KC', help='The string code for the area of interest.  Default is LV_KC')
-@click.option('--threshold', default=1.0, help="Threshold for calculating trace species.  Default is 1%")
+@click.option('--threshold', default=1.0, help="Threshold for calculating trace species.  Default is 1.0%")
 @click.option('--fnf', default=None, type=click.Path(exists=True), help='Add a forest/non-forest mask - specify the filepath')
 @click.option('--shapefile', default=None, type=click.Path(exists=True), help='Calculate trace species within this area - provide path to shapefile')
 @click.option('--write_trace_raster', help='Write output trace species raster - provide output filename')

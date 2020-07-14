@@ -41,7 +41,9 @@ Calculate using method 1, supplying a FNF mask, a shapefile, and an output trace
 ## Help
 
 ```bash
-python trace_species.py --help             Usage: trace_species.py [OPTIONS]
+python trace_species.py --help
+
+Usage: trace_species.py [OPTIONS]
 
 Options:
   --pc_adj PATH              Path to directory containing percentage adjusted
@@ -58,13 +60,13 @@ Options:
   --aoi TEXT                 The string code for the area of interest.
                              Default is LV_KC
 
-  --threshold INTEGER        Threshold for calculating trace species.  Default
-                             is 1%
+  --threshold FLOAT          Threshold for calculating trace species.  Default
+                             is 1.0%
 
-  --fnf TEXT                 Add a forest/non-forest mask - specify the
+  --fnf PATH                 Add a forest/non-forest mask - specify the
                              filepath
 
-  --shapefile TEXT           Calculate trace species within this area -
+  --shapefile PATH           Calculate trace species within this area -
                              provide path to shapefile
 
   --write_trace_raster TEXT  Write output trace species raster - provide
