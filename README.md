@@ -15,7 +15,7 @@ second output, if flag set : a new raster with pixel values equal to the summed 
 
 ## Method 2 - Using a dominant species raster as input
 
-inputs : a dominant species raster.  Trace species are identified as those which are dominant in less than a threshold percentage (default 1%) of valid (ie not masked) pixels.
+_inputs_ : a dominant species raster.  Trace species are identified as those which are dominant in less than a threshold percentage (default 1%) of valid (ie not masked) pixels.
 
 masks : FNF raster and/or shapefile with property boundaries or similar
 
