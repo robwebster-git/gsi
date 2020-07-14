@@ -229,23 +229,23 @@ def write_results_txt(trace_species, process_info, filename):
 def write_trace_species_raster(data, profile, outname):
 
     """
-    This function takes a list of numpy arrays (each representing a data layer / raster)
+    This function takes a list of numpy arrays (each representing a trace species)
     along with a profile dictionary and an output filename.
 
-    It calculates the sum of the values of each of the stacked arrays - ie of the pixels "lying on top of each other"
-    / or along axis=0.  It then writes this aggregate 2D arrays as a new raster.
+    It calculates the sum of the values of each layer of the stacked array - ie of the pixels "lying on top of each other"
+    / or along axis=0.  It then writes this aggregate 2D array as a new raster.
 
     Effectively this represents the cumulative contributions of all species masked as "trace" in each pixel.
 
     """
 
     #  Stack the input data 
-    all_layers = np.ma.stack(data)
+    all_layers = ma.stack(data)
     
     #  Add up all the pixels lying "on top of" each other in the stack
     layers_sum = all_layers.sum(axis=0)
 
-    print(f'\nWriting output raster with summed trace species contributions: {outname}\n')
+    print(f'\n Writing output raster with summed trace species contributions: {outname}\n')
 
     #  Write the data
     with rio.open(outname, 'w', **profile) as dest:
@@ -258,12 +258,11 @@ def write_trace_species_raster(data, profile, outname):
 @click.option('--dom','dominant_species_raster', type=click.Path(exists=True))
 @click.option('--out', 'outpath', default='.', type=click.Path(exists=True))
 @click.option('--aoi', default='LV_KC', help='The code for the area of interest')
-@click.option('--pc_threshold', default=1)
-@click.option('--dom_threshold', default=1)
+@click.option('--threshold', default=1)
 @click.option('--fnf', default=None, help='Add a forest/non-forest mask - specify the filepath')
 @click.option('--shapefile', default=None, help='Calculate trace species within this area - provide path to shapefile')
 @click.option('--write_trace_raster', help='Write output trace species raster - provide output filename')
-def main(pc_adj_filepath, dominant_species_raster, outpath, aoi, pc_threshold, dom_threshold, fnf, shapefile, write_trace_raster):
+def main(pc_adj_filepath, dominant_species_raster, outpath, aoi, threshold, fnf, shapefile, write_trace_raster):
     
     fnf_exists = False
     fnf_array = None
@@ -316,10 +315,10 @@ def main(pc_adj_filepath, dominant_species_raster, outpath, aoi, pc_threshold, d
         print(pc_files)
         
         #  Print threshold
-        print(f'\nUsing threshold {pc_threshold}%\n')
+        print(f'\nUsing threshold {threshold}%\n')
         
         #  Call the function
-        trace_species, trace_data, profile, process_info = find_trace_by_pc_adj(pc_files, fnf_exists, fnf_array, pc_threshold, shapes)
+        trace_species, trace_data, profile, process_info = find_trace_by_pc_adj(pc_files, fnf_exists, fnf_array, threshold, shapes)
         
         #  Set up filenames for log outputs
         if fnf:
@@ -343,10 +342,10 @@ def main(pc_adj_filepath, dominant_species_raster, outpath, aoi, pc_threshold, d
         
         #  Print out threshold and filename to confirm to user correct settings being used
         print(f'Dominant species raster : {dom_file}')
-        print(f'Using threshold {dom_threshold}%')
+        print(f'Using threshold {threshold}%')
 
         #  Call the function
-        trace_species, process_info = find_trace_by_dominance(dom_file, fnf_exists, fnf_array, dom_threshold, shapes)
+        trace_species, process_info = find_trace_by_dominance(dom_file, fnf_exists, fnf_array, threshold, shapes)
         
         #  Set up filenames for log outputs
         if fnf:
