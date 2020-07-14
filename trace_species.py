@@ -10,13 +10,9 @@ import sys
 import fiona
 
 """
-
 Trace Species ID, version 1.1
-
 Rob Webster - July 2020
-
 Ticket Number - GSI 654
-
 """
 
 
@@ -32,7 +28,6 @@ def find_trace_by_pc_adj(files, fnf_exists, fnf_array, threshold, shapes):
     trace_data : a list of masked arrays of the data from the species identified as trace
     profile : return metadata for writing the trace species data to a new raster
     process_info : list - textual info about the process
-
     """
     trace_species = []
     trace_data = []
@@ -106,7 +101,6 @@ def find_trace_by_dominance(domfile, fnf_exists, fnf_array, dom_threshold, shape
     
     trace_species : list - info on trace species including FIA codes
     process_info : list - textual info about the process
-
     """
 
     trace_species = []
@@ -231,12 +225,9 @@ def write_trace_species_raster(data, profile, outname):
     """
     This function takes a list of numpy arrays (each representing a trace species)
     along with a profile dictionary and an output filename.
-
     It calculates the sum of the values of each layer of the stacked array - ie of the pixels "lying on top of each other"
     / or along axis=0.  It then writes this aggregate 2D array as a new raster.
-
     Effectively this represents the cumulative contributions of all species masked as "trace" in each pixel.
-
     """
 
     #  Stack the input data 
